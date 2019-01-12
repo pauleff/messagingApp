@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Notifications</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div id="app" class="container">
+        <br />
+        <h1>{{message}}</h1>
+        <br />
+        <form>
+
+            <div class="form-group">
+                <label for="sent_from" class="control-label">Sent From</label>
+                <select class="form-control" id="sent_from" v-model="notification.sentFrom">
+                    <option disabled value="">Select sender</option>
+                    <option value="paul">Paul</option>
+                    <option value="etim">Etim</option>
+                    <option value="solomon">Solomon</option>
+                    <option value="kingsley">Kingsley</option>
+                    <option value="benard">Benard</option>
+                    <option value="richard">Richard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sent_to" class="control-label">Sent To</label>
+                <select class="form-control" id="sent_to" v-model="notification.sentTo">
+                    <option disabled value="">Select receiver</option>
+                    <option value="solomon">Solomon</option>
+                    <option value="etim">Etim</option>
+                    <option value="paul">Paul</option>
+                    <option value="kingsley">Kingsley</option>
+                    <option value="benard">Benard</option>
+                    <option value="richard">Richard</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="message" class="control-label">Message</label>
+                <textarea v-model="notification.message" class="form-control" id="message" name="message" placeholder="Provide notification message"></textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" @click.prevent="createNotification">Create Notification</button>
+            </div>
+        </form>
+        <hr />
+        <div class="form-group">
+            <label for="sent_to" class="control-label">User List</label>
+            <select class="form-control" id="sent_to" @change="onChange()" v-model="notification.sentTo">
+                <option disabled value="">Select user</option>
+                <option value="solomon">Solomon</option>
+                <option value="etim">Etim</option>
+                <option value="paul">Paul</option>
+                <option value="kingsley">Kingsley</option>
+                <option value="benard">Benard</option>
+                <option value="richard">Richard</option>
+            </select>
+        </div>
+        <ul class="list-group">
+
+            <li v-for="notification in notifications" class="list-group-item" style="cursor: pointer" @click="markNotification(notification)"
+                v-bind:class="{ 'list-group-item-primary': notification.isRead, 'list-group-item-warning': !notification.isRead }">
+                {{notification.message}}
+            </li>
+        </ul>
+        <br />
+
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                message: 'HQ Tech Exercise',
+                successMessage: '',
+                errorMessage: '',
+                notification: {
+                    dateSent: new Date().toJSON(),
+                    sentFrom: '',
+                    sentTo: 'solomon',
+                    message: '',
+                    isRead: false
+                },
+                notifications: []
+            },
+            methods: {
+                onChange() {
+                    this.listUsers(this.notification.sentTo)
+                },
+                markNotification: function (notification) {
+                    this.$http
+                        .get('http://localhost:9200/api/messaging/status/' + !notification.isRead +
+                            '/id/' + notification.id)
+                        .then(
+                            response => {
+                                notification.isRead = !notification.isRead
+                            },
+                            err => {
+                                console.log("Error has occured...", err);
+                            }
+                        );
+                },
+                createNotification: function () {
+                    this.$http
+                        .post('http://localhost:9200/api/messaging/', this.notification)
+                        .then(
+                            response => {
+                                console.log(response);
+                                if (response.status == 200) {
+                                    this.successMessage = "OK";
+                                    this.notifications.unshift(response.body)
+                                    this.notification = {};
+                                }
+                            },
+                            err => {
+                                if (err.ok == false && err.status == 0) {
+                                    this.errorMessage =
+                                        "ERROR: System Offline. Please write on paper";
+                                } else {
+                                    this.errorMessage =
+                                        "ERROR: System has encountered an error. Please write on paper";
+                                }
+                                console.log("Error has occured...", err);
+                            }
+                        );
+                },
+                listUsers: function (username) {
+                    this.$http
+                        .get('http://localhost:9200/api/messaging/' + username)
+                        .then(
+                            response => {
+                                console.log(response.body);
+                                this.notifications = response.body;
+                            },
+                            err => {
+                                console.log("Error has occured...", err);
+                            }
+                        );
+                }
+            },
+            created: function () {
+                this.listUsers(this.notification.sentTo)
+            }
+        })
+    </script>
+</body>
+
+</html>
