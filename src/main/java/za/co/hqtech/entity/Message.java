@@ -20,10 +20,30 @@ import javax.validation.constraints.Size;
 /**
  *
  * @author etimpaul
+ * 
+ * 
+ * ---------------------- COMMENTS ---------------------------------------------
+ * 
+ * Alright, firstly, you want to try and avoid too much unnecessary code.
+ * 
+ * From all these below: there are only 2 that are required, @Entity (to identify this class as an entity [required by mysql]) and @Id (to identify a key field)
+ * everything else is unnecessary.
+ * 
+ * 
+ *  N.B ... you want to avoid using entities as parameters in your controllers. 
+ * It would be preferred to use a modal as some data cannot easily be converted from JSON to java, e.g Dates.
+ * 
+ * 
+ * Also, Try LocalDate | LocalTime | LocalDateTime objects instead of java.util.Date.
+ * 
+ * 
  */
 
 @Entity
-@Table(name = "message_")
+@Table(name = "message_") // optional 
+
+// Thos part i think is the most important to change. The best part about spring boot is that you dont need to script SQL. 
+// ALL of these queries are provided by your repository (Please see REPO class)
 @NamedQueries({ @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
 		@NamedQuery(name = "Message.findById", query = "SELECT m FROM Message m WHERE m.id = :id"),
 		@NamedQuery(name = "Message.findByDateSent", query = "SELECT m FROM Message m WHERE m.dateSent = :dateSent"),
@@ -36,8 +56,8 @@ public class Message implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Basic(optional = false)
-	@Column(name = "id")
+	@Basic(optional = false) //optional arg
+	@Column(name = "id") // optional arg. both not necessary
 	private Integer id;
 	@Basic(optional = false)
 	@NotNull
@@ -66,6 +86,7 @@ public class Message implements Serializable {
 	@Column(name = "isRead")
 	private Boolean isRead;
 
+	// Everything coded below can be replaced with 1 line (above class header) -- @Data (lombok plugin)
 	public Message() {
 	}
 

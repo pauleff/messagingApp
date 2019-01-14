@@ -23,7 +23,12 @@ public class NotificationController {
 	@Autowired
 	private NotificationRepository notificationRepository;
 
-	@CrossOrigin
+	/**
+	 * 	Message is an entity and should not be used as a parameter. Try using a modal instead.
+	 * 	the annotation @RequestBody forces all data within an object to exist for this request to be accepted.
+	 *  Please consider use cases of controllers this may not exist.
+	 */
+	@CrossOrigin // Duplicating this can be simplified by adding it to the top of the class.
 	@PostMapping("/messaging")
 	public Message createNotification(@Valid @RequestBody Message message) {
 		return notificationRepository.save(message);
